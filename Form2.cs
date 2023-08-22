@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace ShessGUI
 {
@@ -26,6 +27,22 @@ namespace ShessGUI
     {
       arrangeNames = new();
       initPoses = new();
+      if(!File.Exists("Arrangements/ArrangeNames.txt"))
+      {
+        Directory.CreateDirectory("Arrangements");
+        using (FileStream fs = File.Create("Arrangements/ArrangeNames.txt"))
+        {
+          byte[] info = new UTF8Encoding(true).GetBytes("");
+          // Add some information to the file.
+          fs.Write(info, 0, info.Length);
+        }
+        using (FileStream fs = File.Create("Arrangements/InitPoses.txt"))
+        {
+          byte[] info = new UTF8Encoding(true).GetBytes("");
+          // Add some information to the file.
+          fs.Write(info, 0, info.Length);
+        }
+      }
       foreach (string s in File.ReadLines("Arrangements/ArrangeNames.txt"))
       {
         arrangeNames.Add(s);
@@ -34,7 +51,6 @@ namespace ShessGUI
       {
         initPoses.Add(s);
       }
-
       UpdateArrangements();
     }
     public void UpdateArrangements()
