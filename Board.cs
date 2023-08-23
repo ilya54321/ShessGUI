@@ -10,12 +10,11 @@ namespace ShessGUI
 {
   internal class Board : MyObject
   {
-    public bool isPlayerFirstMove;
     public List<Figures> possibleFigures;
     public int moveNumber, move50Rule; 
     public int firstPosX, firstPosY;
     public Size figureSize;
-    char playerColor, computerColor;
+    public char firstMove;
     public static void Decode(string move, bool isRotated,
       out int firstI, out int firstJ, out int newI, out int newJ)
     {
@@ -49,12 +48,12 @@ namespace ShessGUI
     }
     Figure?[,] _board;
     public bool isRotated;
-    public Board(float x, float y, string initPos)
+    public Board(float x, float y, string initPos, bool isRotated)
     {
       _board = new Figure?[6, 5];
       this.x = x; this.y = y;
       possibleFigures = new();
-      isRotated = initPos[initPos.Length - 1] == 'b';
+      this.isRotated = isRotated;
       if (isRotated) BoardInit(5, 4, -1, initPos);
       else BoardInit(0, 0, 1, initPos);
       if (isRotated) ObjImg = new Bitmap(Sprites.NewShessBoard2, 
@@ -72,8 +71,7 @@ namespace ShessGUI
       ObjImg = board.ObjImg;
       _board = new Figure?[6, 5];
       this.isRotated = board.isRotated;
-      this.playerColor = board.playerColor;
-      this.computerColor = board.computerColor;
+      this.firstMove = board.firstMove;
       this.moveNumber = board.moveNumber;
       this.move50Rule = board.move50Rule;
       for(int i = 0; i < 6; i++)
@@ -134,7 +132,7 @@ namespace ShessGUI
       int GetNumber(ref int p, string initPos)
       {
         string number = "";
-        while (initPos[p] != ' ')
+        while (p!=initPos.Length && initPos[p] != ' ')
         {
           number += initPos[p];
           p++;
@@ -144,8 +142,6 @@ namespace ShessGUI
       }
       int i = starti; int j = startj;
       int p = 0;
-      playerColor = isRotated ? 'b' : 'w';
-      computerColor = isRotated ? 'w' : 'b';
       for(; p < initPos.Length; p++)
       {
         char symb = initPos[p];
@@ -168,8 +164,7 @@ namespace ShessGUI
         }
       }
       p++;
-      if (playerColor == initPos[p]) isPlayerFirstMove = true;
-      else isPlayerFirstMove = false;
+      firstMove = initPos[p];
       p+=2;
       while (initPos[p] != ' ')
       {
@@ -179,7 +174,7 @@ namespace ShessGUI
       moveNumber = GetNumber(ref p, initPos);
       move50Rule = GetNumber(ref p, initPos);
     }
-    public void GetPlayerKingIJ(out int ki, out int kj)
+    public void GetWhiteKingIJ(out int ki, out int kj)
     {
       ki = 0; kj = 0;
       for (int i = 0; i < 6; i++)
@@ -187,12 +182,12 @@ namespace ShessGUI
         for (int j = 0; j < 5; j++)
         {
           Figure? figure = this[i, j];
-          if (figure is not null && playerColor == figure.color &&
+          if (figure is not null && figure.color == 'w' &&
             figure.type == Figures.King) { ki = i; kj = j; break; }
         }
       }
     }
-    public void GetComputerKingIJ(out int ki, out int kj)
+    public void GetBlackKingIJ(out int ki, out int kj)
     {
       ki = 0; kj = 0;
       for (int i = 0; i < 6; i++)
@@ -200,7 +195,7 @@ namespace ShessGUI
         for (int j = 0; j < 5; j++)
         {
           Figure? figure = this[i, j];
-          if (figure is not null && computerColor == figure.color &&
+          if (figure is not null && figure.color == 'b' &&
             figure.type == Figures.King) { ki = i; kj = j; break; }
         }
       }

@@ -32,12 +32,19 @@ namespace ShessGUI
     }
     public override string[] GetPossibleMoves(Board board, int fi, int fj)
     {
-      GetOwner(out bool isOwnerPlayer, board);
       Board board2 = new(board);
       int ki, kj;
-      if (isOwnerPlayer) board.GetPlayerKingIJ(out ki, out kj);
-      else board.GetComputerKingIJ(out ki, out kj);
-      int k = isOwnerPlayer ? -1 : 1;
+      if (this.color == 'w') board.GetWhiteKingIJ(out ki, out kj);
+      else board.GetBlackKingIJ(out ki, out kj);
+      int k;
+      if(board.isRotated)
+      {
+        k = this.color == 'b' ? -1 : 1;
+      }
+      else
+      {
+        k = this.color == 'w' ? -1 : 1;
+      }
       List<string> moves = new ();
       string move, backmove;
       Figure? figure1 = Board.InRange(fi + k, fj + 1) ? board[fi + k, fj + 1] : null, 

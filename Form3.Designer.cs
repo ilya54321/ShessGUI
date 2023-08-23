@@ -32,7 +32,6 @@
       this.ArrangeName = new System.Windows.Forms.TextBox();
       this.label2 = new System.Windows.Forms.Label();
       this.BoardInit = new System.Windows.Forms.TextBox();
-      this.checkBox1 = new System.Windows.Forms.CheckBox();
       this.checkBox2 = new System.Windows.Forms.CheckBox();
       this.checkedListBox1 = new System.Windows.Forms.CheckedListBox();
       this.label3 = new System.Windows.Forms.Label();
@@ -80,17 +79,6 @@
       this.BoardInit.TabIndex = 3;
       this.BoardInit.Text = "rnbqk/ppppp/5/5/PPPPP/RNBQK";
       this.BoardInit.TextChanged += new System.EventHandler(this.BoardInit_TextChanged);
-      // 
-      // checkBox1
-      // 
-      this.checkBox1.AutoSize = true;
-      this.checkBox1.Location = new System.Drawing.Point(61, 419);
-      this.checkBox1.Name = "checkBox1";
-      this.checkBox1.Size = new System.Drawing.Size(97, 24);
-      this.checkBox1.TabIndex = 4;
-      this.checkBox1.Text = "Play Black";
-      this.checkBox1.UseVisualStyleBackColor = true;
-      this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
       // 
       // checkBox2
       // 
@@ -188,7 +176,6 @@
       this.Controls.Add(this.label3);
       this.Controls.Add(this.checkedListBox1);
       this.Controls.Add(this.checkBox2);
-      this.Controls.Add(this.checkBox1);
       this.Controls.Add(this.BoardInit);
       this.Controls.Add(this.label2);
       this.Controls.Add(this.ArrangeName);

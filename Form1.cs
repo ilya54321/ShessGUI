@@ -1,32 +1,78 @@
 using Microsoft.VisualBasic;
 using static ShessGUI.Board;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace ShessGUI
 {
   public partial class Form1 : Form
   {
     Form2 launcher;
+    Process engine;
+    StreamWriter streamWriter;
+    StreamReader streamReader;
     Board board;
     List<int[]> possiblePositions;
     List<Figures> possibleFigures;
     int? playerPosI, playerPosJ;
     int moveNumber, move50Rule;
-    bool playerMove, transformation;
-    char playerColor, computerColor;
+    public char moveColor;
+    bool playerMove, transformation, computerMoving = false;
+    public int whiteDifficult=0, blackDifficult=0;
+    char playerColor='d', computerColor='d';
     string? lastMove = null;
     ChoosingPanel panel;
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    static extern bool AllocConsole();
     public Form1(string FEN, Form2 launcher)
     {
-      board = new Board(0, 0, FEN);
+      Form4 dialog = new(this);
+      dialog.ShowDialog();
+      engine = new Process();
+      engine.StartInfo.FileName = "ChessEngine.exe";
+      engine.StartInfo.UseShellExecute = false;
+      engine.StartInfo.RedirectStandardOutput = true;
+      engine.StartInfo.RedirectStandardInput = true;
+      engine.StartInfo.CreateNoWindow = true;
+      engine.Start();
+      AllocConsole();
+      streamWriter = engine.StandardInput;
+      streamReader = engine.StandardOutput;
+      streamWriter.WriteLine($"position {FEN.Substring(0, FEN.Length)}");
+      Console.WriteLine($"position {FEN.Substring(0, FEN.Length)}");
+      bool isBoardRotated;
+      int p1 = 0;
+      while (FEN[p1] != ' ') p1++;
+      p1++;
+      moveColor = FEN[p1];
+      if ((whiteDifficult != 0 && blackDifficult != 0) ||
+        (whiteDifficult == 0 && blackDifficult == 0))
+      {
+        isBoardRotated = false;
+        if (whiteDifficult != 0) playerMove = false;
+        else playerMove = true;
+      }
+      else
+      {
+        if (whiteDifficult == 0) playerColor = 'w';
+        else playerColor = 'b';
+        computerColor = playerColor == 'w' ? 'b' : 'w';
+        if (playerColor == 'b') isBoardRotated = true;
+        else isBoardRotated = false;
+        int p = 0;
+        while (FEN[p] != ' ') p++;
+        p++;
+        if (FEN[p] == playerColor) playerMove = true;
+        else playerMove = false;
+      }
+      board = new Board(0, 0, FEN, isBoardRotated);
       this.launcher = launcher;
       InitializeComponent();
       this.DoubleBuffered = true;
       transformation = false;
-      playerMove = board.isPlayerFirstMove;
       possibleFigures = board.possibleFigures;
       moveNumber = board.moveNumber; move50Rule = board.move50Rule;
-      playerColor = board.isRotated ? 'b' : 'w';
-      computerColor = board.isRotated ? 'w' : 'b';
       panel = possibleFigures.Count switch
       {
         1 => new Panel1(this.Width, this.Height),
@@ -40,9 +86,9 @@ namespace ShessGUI
     {
       //this.Close();
       DialogResult dialogResult;
-      if (result == 'd') dialogResult = MessageBox.Show("Ничья", "Игра Закончена!");
-      else if (result == 'w') dialogResult = MessageBox.Show("Победили белые", "Игра Закончена!");
-      else dialogResult = MessageBox.Show("Победили чёрные", "Игра Закончена!");
+      if (result == 'd') dialogResult = MessageBox.Show("Draw", "Game Finished!");
+      else if (result == 'w') dialogResult = MessageBox.Show("White won", "Game Finished!");
+      else dialogResult = MessageBox.Show("Black won", "Game Finished!");
       if(dialogResult == DialogResult.Cancel || 
         dialogResult == DialogResult.OK)
       {
@@ -55,24 +101,22 @@ namespace ShessGUI
       if (move50Rule == 50) {
         EndGame('d'); return;
       }
-      char color = playerMove ? playerColor : computerColor;
-      char winColor = playerMove ? computerColor : playerColor;
       for (int i = 0; i < 6; i++)
       {
         for (int j = 0; j < 5; j++)
         {
           Figure? figure = board[i, j];
-          if(figure is not null && figure.color == color)
+          if(figure is not null && figure.color == moveColor)
           {
             if(figure.GetPossibleMoves(board, i, j).Length != 0) return;
           }
           if(i == 5 && j == 4)
           {
             int ki, kj;
-            if (playerMove) 
-              board.GetPlayerKingIJ(out ki, out kj);
-            else board.GetComputerKingIJ(out ki, out kj);
-            if (board.IsShahToThisKing(ki, kj)) EndGame(winColor);
+            if (moveColor == 'w') 
+              board.GetBlackKingIJ(out ki, out kj);
+            else board.GetWhiteKingIJ(out ki, out kj);
+            if (board.IsShahToThisKing(ki, kj)) EndGame(moveColor);
             else EndGame('d');
           }
         }
@@ -112,7 +156,7 @@ namespace ShessGUI
         g.DrawImage(panel.ObjImg, panel.DrawLocation.X, panel.DrawLocation.Y);
         for (int i = 0; i < possibleFigures.Count; i++)
         {
-          Figure? figure = Board.GetFigureFromEnumerator(possibleFigures[i], playerMove ? playerColor : computerColor);
+          Figure? figure = Board.GetFigureFromEnumerator(possibleFigures[i], moveColor);
           if(figure is not null)g.DrawImage(figure.ObjImg,panel.FiguresCoordinates[i].X, 
             panel.FiguresCoordinates[i].Y);
           Point CursorPos = this.PointToClient(Cursor.Position);
@@ -129,6 +173,7 @@ namespace ShessGUI
     private void timer1_Tick(object sender, EventArgs e)
     {
       Invalidate();
+      if (!playerMove && !computerMoving) ComputerMove(lastMove);
     }
     private void GetIJ(out int i, out int j)
     {
@@ -139,6 +184,8 @@ namespace ShessGUI
 
     private void Form1_FormClosing(object sender, FormClosingEventArgs e)
     {
+      engine.CloseMainWindow();
+      engine.Close();
       launcher.Close();
     }
 
@@ -147,23 +194,14 @@ namespace ShessGUI
       for (int i = 0; i < 5; i++)
       {
         Figure? figure = board[0, i];
-        if (figure is not null && figure.type == Figures.Pawn &&
-          figure.color == playerColor)
+        if (figure is not null && figure.type == Figures.Pawn)
           transformation = true;
       }
       for (int i = 0; i < 5; i++)
       {
         Figure? figure = board[5, i];
-        if (figure is not null && figure.type == Figures.Pawn &&
-          figure.color == computerColor)
-        {
-          /*
-          Figures compChoice = (Figures)move[4];
-          board[5, i] = Board.GetFigureFromEnumerator(compChoice, board.isRotated ? 'w' : 'b');
-          */
-          //Для компьютера
+        if (figure is not null && figure.type == Figures.Pawn)
           transformation = true;
-        }
       }
     }
     private void PlayerMove(string? move)
@@ -172,7 +210,7 @@ namespace ShessGUI
       {
         GetIJ(out int i, out int j);
         Figure? figure = Board.InRange(i, j) ? board[i, j] : null;
-        if (figure is not null && figure.color == playerColor)
+        if (figure is not null && figure.color == moveColor)
         {
           playerPosI = i; playerPosJ = j;
           possiblePositions = new List<int[]>(0);
@@ -195,6 +233,7 @@ namespace ShessGUI
             {
               lastMove = Board.Recode(board.isRotated, (int)playerPosI, (int)playerPosJ, i, j);
               board.InstantMove(lastMove);
+              Invalidate();
               moveNumber++;
               if (figure is null) move50Rule++;
               else move50Rule = 0;
@@ -202,8 +241,11 @@ namespace ShessGUI
               PawnChecker();
               if (!transformation)
               {
-                playerMove = false;
+                streamWriter.WriteLine($"apply {lastMove}");
+                Console.WriteLine($"apply {lastMove}");
                 EndGameTester();
+                moveColor = moveColor == 'w' ? 'b' : 'w';
+                if (computerColor == moveColor) playerMove = false;
               }
               break;
             }
@@ -223,10 +265,15 @@ namespace ShessGUI
             if (cursorPosition.X >= p.X && cursorPosition.X < p.X + 120 &&
               cursorPosition.Y >= p.Y && cursorPosition.Y < p.Y + 120)
             {
-              board[ni, nj] = Board.GetFigureFromEnumerator(possibleFigures[q], playerColor);
-              playerMove = false;
+              board[ni, nj] = Board.GetFigureFromEnumerator(possibleFigures[q], moveColor);
+              Invalidate();
               transformation = false;
+              lastMove += (char)possibleFigures[q];
+              streamWriter.WriteLine($"apply {lastMove}");
+              Console.WriteLine($"apply {lastMove}");
               EndGameTester();
+              moveColor = moveColor == 'w' ? 'b' : 'w';
+              if (computerColor == moveColor) playerMove = false;
               break;
             }
             q++;
@@ -236,82 +283,43 @@ namespace ShessGUI
     }
     private void ComputerMove(string? move)
     {
-      if (!transformation)
-      {
-        GetIJ(out int i, out int j);
-        Figure? figure = Board.InRange(i, j) ? board[i, j] : null;
-        if (figure is not null && figure.color == computerColor)
-        {
-          playerPosI = i; playerPosJ = j;
-          possiblePositions = new List<int[]>(0);
-          string[]? possibleMoves = figure.GetPossibleMoves(board, i, j);
-          if (possibleMoves is not null)
-          {
-            foreach (string now in possibleMoves)
-            {
-              int fi, fj, ni, nj;
-              Board.Decode(now, board.isRotated, out fi, out fj, out ni, out nj);
-              possiblePositions.Add(new int[] { ni, nj });
-            }
-          }
-        }
-        else if (playerPosI is not null && playerPosJ is not null)
-        {
-          foreach (int[] now in possiblePositions)
-          {
-            if (now[0] == i && now[1] == j)
-            {
-              lastMove = Board.Recode(board.isRotated, (int)playerPosI, (int)playerPosJ, i, j);
-              board.InstantMove(lastMove);
-              moveNumber++;
-              if (figure is null) move50Rule++;
-              else move50Rule = 0;
-              possiblePositions.Clear();
-              PawnChecker();
-              if (!transformation)
-              {
-                playerMove = true;
-                EndGameTester();
-              }
-              break;
-            }
-          }
-        }
+      computerMoving = true;
+      if (moveColor == 'w') {
+        streamWriter.WriteLine($"search {1000 * whiteDifficult}");
+        lastMove = streamReader.ReadLine();
+        streamWriter.WriteLine($"apply {lastMove}");
+        Console.WriteLine($"apply {lastMove}");
+        Board.Decode(lastMove, board.isRotated, out int fi, out int fj, out int ni, out int nj);
+        Figure? figure = board[ni, nj];
+        board.InstantMove(lastMove);
+        if (figure is null) move50Rule++;
+        else move50Rule = 0;
+        moveNumber++;
+        if (lastMove.Length == 5) board[ni, nj] = GetFigureFromEnumerator((Figures)lastMove[4], 'w');
+        EndGameTester();
+        moveColor = 'b';
       }
-      else
-      {
-        int fi, fj, ni, nj;
-        if (lastMove is not null)
-        {
-          Board.Decode(lastMove, board.isRotated, out fi, out fj, out ni, out nj);
-          Point cursorPosition = this.PointToClient(Cursor.Position);
-          int q = 0;
-          foreach (Point p in panel.FiguresCoordinates)
-          {
-            if (cursorPosition.X >= p.X && cursorPosition.X < p.X + 120 &&
-              cursorPosition.Y >= p.Y && cursorPosition.Y < p.Y + 120)
-            {
-              board[ni, nj] = Board.GetFigureFromEnumerator(possibleFigures[q], computerColor);
-              playerMove = true;
-              transformation = false;
-              EndGameTester();
-              break;
-            }
-            q++;
-          }
-        }
+      else {
+        streamWriter.WriteLine($"search {1000 * whiteDifficult}");
+        lastMove = streamReader.ReadLine();
+        streamWriter.WriteLine($"apply {lastMove}");
+        Console.WriteLine($"apply {lastMove}");
+        Board.Decode(lastMove, board.isRotated, out int fi, out int fj, out int ni, out int nj);
+        Figure? figure = board[ni, nj];
+        board.InstantMove(lastMove);
+        if (figure is null) move50Rule++;
+        else move50Rule = 0;
+        moveNumber++;
+        if (lastMove.Length == 5) board[ni, nj] = GetFigureFromEnumerator((Figures)lastMove[4], 'b');
+        EndGameTester();
+        moveColor = 'w';
       }
+      if (playerColor == moveColor) playerMove = true;
+      computerMoving = false;
     }
     private void Form1_MouseDown(object sender, MouseEventArgs e)
     {
-      if(playerMove)
-      {
-        PlayerMove(lastMove);
-      }
-      else
-      {
-        ComputerMove(lastMove);
-      }
+      if(playerMove) PlayerMove(lastMove);
     }
   }
 }

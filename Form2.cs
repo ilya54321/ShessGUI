@@ -33,13 +33,11 @@ namespace ShessGUI
         using (FileStream fs = File.Create("Arrangements/ArrangeNames.txt"))
         {
           byte[] info = new UTF8Encoding(true).GetBytes("");
-          // Add some information to the file.
           fs.Write(info, 0, info.Length);
         }
         using (FileStream fs = File.Create("Arrangements/InitPoses.txt"))
         {
           byte[] info = new UTF8Encoding(true).GetBytes("");
-          // Add some information to the file.
           fs.Write(info, 0, info.Length);
         }
       }

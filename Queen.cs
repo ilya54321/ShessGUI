@@ -30,11 +30,10 @@ namespace ShessGUI
     }
     public override string[] GetPossibleMoves(Board board, int fi, int fj)
     {
-      GetOwner(out bool isOwnerPlayer, board);
       Board board2 = new(board);
       int ki, kj;
-      if (isOwnerPlayer) board.GetPlayerKingIJ(out ki, out kj);
-      else board.GetComputerKingIJ(out ki, out kj);
+      if (this.color == 'w') board.GetWhiteKingIJ(out ki, out kj);
+      else board.GetBlackKingIJ(out ki, out kj);
       List<string> moves = new();
       short[,] directions = new short[,] { { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 }, { 1, 0}, {0, 1 }, {-1, 0 }, {0, -1 } };
       for (int i = 0; i < 8; i++)

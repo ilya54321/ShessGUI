@@ -18,7 +18,6 @@ namespace ShessGUI
     string FEN = "rnbqk/ppppp/5/5/PPPPP/RNBQK";
     string moveNumber = "0";
     string move50Rule = "0";
-    string play = "w";
     string firstMove = "w";
     string transpos = "rnqb";
     Form2 f;
@@ -36,7 +35,7 @@ namespace ShessGUI
     private string GetInitPos()
     {
       string initPos = "";
-      initPos = FEN + " " + firstMove + " " + transpos + " " + moveNumber + " " + move50Rule + " " + play;
+      initPos = FEN + " " + firstMove + " " + transpos + " " + moveNumber + " " + move50Rule;
       return initPos;
     }
 
@@ -68,13 +67,6 @@ namespace ShessGUI
     {
       move50Rule = this.Move50Rule.Text;
     }
-
-    private void checkBox1_CheckedChanged(object sender, EventArgs e)
-    {
-      if (play == "w") play = "b";
-      else play = "w";
-    }
-
     private void checkBox2_CheckedChanged(object sender, EventArgs e)
     {
       if (firstMove == "w") firstMove = "b";
