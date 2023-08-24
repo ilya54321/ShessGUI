@@ -12,8 +12,8 @@ namespace ShessGUI
 {
   public partial class Form4 : Form
   {
-    Form1 sende;
-    public Form4(Form1 sender)
+    Form2 sende;
+    public Form4(Form2 sender)
     {
       sende = sender;
       InitializeComponent();
@@ -22,6 +22,7 @@ namespace ShessGUI
     }
     private void button1_Click(object sender, EventArgs e)
     {
+      sende.launch = true;
       this.Close();
     }
 

@@ -27,6 +27,22 @@ namespace ShessGUI
       this.arrangeNames = arrangeNames;
       this.initPoses = initPoses;
       InitializeComponent();
+      if (f.language == "language:Русский")
+      {
+        this.Text = "Добавление...";
+        label1.Text = "Имя:";
+        label2.Text = "Доска(FEN):";
+        label3.Text = "Возможные фигуры для трансформации пешки:";
+        label4.Text = "Сейчас ход:";
+        label5.Text = "Номер хода со взятия фигуры:";
+        checkBox2.Text = "Первые ходят чёрные";
+        button1.Text = "Принять";
+        ArrangeName.Text = "НоваяРасстановка";
+        checkedListBox1.Items[0] = "Ладья";
+        checkedListBox1.Items[1] = "Конь";
+        checkedListBox1.Items[2] = "Ферзь";
+        checkedListBox1.Items[3] = "Слон";
+      }
       for (int i = 0; i < 4; i++)
       {
         this.checkedListBox1.SetItemChecked(i, true);

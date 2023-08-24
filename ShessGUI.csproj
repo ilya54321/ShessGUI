@@ -9,6 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Update="Other.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Other.resx</DependentUpon>
+    </Compile>
     <Compile Update="Sprites.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -17,6 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Other.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Other.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="Sprites.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Sprites.Designer.cs</LastGenOutput>

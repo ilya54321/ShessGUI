@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Media;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace ShessGUI
     public int firstPosX, firstPosY;
     public Size figureSize;
     public char firstMove;
+    
     public static void Decode(string move, bool isRotated,
       out int firstI, out int firstJ, out int newI, out int newJ)
     {
@@ -48,7 +50,7 @@ namespace ShessGUI
     }
     Figure?[,] _board;
     public bool isRotated;
-    public Board(float x, float y, string initPos, bool isRotated)
+    public Board(float x, float y, string initPos, bool isRotated, string theme)
     {
       _board = new Figure?[6, 5];
       this.x = x; this.y = y;
@@ -56,10 +58,20 @@ namespace ShessGUI
       this.isRotated = isRotated;
       if (isRotated) BoardInit(5, 4, -1, initPos);
       else BoardInit(0, 0, 1, initPos);
-      if (isRotated) ObjImg = new Bitmap(Sprites.NewShessBoard2, 
-        new Size(720, 840));
-      else ObjImg = new Bitmap(Sprites.NewShessBoard1,
-        new Size(720, 840));
+      if(theme == "theme:1")
+      {
+        if (isRotated) ObjImg = new Bitmap(Sprites.NewShessBoard2,
+          new Size(720, 840));
+        else ObjImg = new Bitmap(Sprites.NewShessBoard1,
+          new Size(720, 840));
+      }
+      else
+      {
+        if (isRotated) ObjImg = new Bitmap(Other.NewTemeShessBoard2,
+          new Size(720, 840));
+        else ObjImg = new Bitmap(Other.NewTemeShessBoard1,
+          new Size(720, 840));
+      }
       firstPosX = DrawLocation.X + 60; 
       firstPosY = DrawLocation.Y + 60;
       figureSize = new Size(120, 120);

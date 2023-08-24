@@ -2,12 +2,14 @@ using Microsoft.VisualBasic;
 using static ShessGUI.Board;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Media;
 
 namespace ShessGUI
 {
   public partial class Form1 : Form
   {
     Form2 launcher;
+    SoundPlayer chessSound;
     Process engine;
     StreamWriter streamWriter;
     StreamReader streamReader;
@@ -27,18 +29,21 @@ namespace ShessGUI
     static extern bool AllocConsole();
     public Form1(string FEN, Form2 launcher)
     {
-      Form4 dialog = new(this);
-      dialog.ShowDialog();
+      this.whiteDifficult = launcher.whiteDifficult;
+      this.blackDifficult = launcher.blackDifficult;
+      chessSound = new();
+      chessSound.Stream = Other.FigureSound;
       engine = new Process();
-      engine.StartInfo.FileName = "ChessEngine.exe";
+      engine.StartInfo.FileName = launcher.path;
       engine.StartInfo.UseShellExecute = false;
       engine.StartInfo.RedirectStandardOutput = true;
       engine.StartInfo.RedirectStandardInput = true;
       engine.StartInfo.CreateNoWindow = true;
       engine.Start();
-      AllocConsole();
+      if(whiteDifficult!=0||blackDifficult!=0)AllocConsole();
       streamWriter = engine.StandardInput;
       streamReader = engine.StandardOutput;
+      streamReader.ReadLine();
       streamWriter.WriteLine($"position {FEN.Substring(0, FEN.Length)}");
       Console.WriteLine($"position {FEN.Substring(0, FEN.Length)}");
       bool isBoardRotated;
@@ -66,7 +71,7 @@ namespace ShessGUI
         if (FEN[p] == playerColor) playerMove = true;
         else playerMove = false;
       }
-      board = new Board(0, 0, FEN, isBoardRotated);
+      board = new Board(0, 0, FEN, isBoardRotated, launcher.theme);
       this.launcher = launcher;
       InitializeComponent();
       this.DoubleBuffered = true;
@@ -86,15 +91,20 @@ namespace ShessGUI
     {
       //this.Close();
       DialogResult dialogResult;
-      if (result == 'd') dialogResult = MessageBox.Show("Draw", "Game Finished!");
-      else if (result == 'w') dialogResult = MessageBox.Show("White won", "Game Finished!");
-      else dialogResult = MessageBox.Show("Black won", "Game Finished!");
-      if(dialogResult == DialogResult.Cancel || 
-        dialogResult == DialogResult.OK)
+      if (launcher.language == "language:Русский")
       {
-        this.Close();
-        launcher.Close();
+        if (result == 'd') dialogResult = MessageBox.Show("Ничья", "Игра окончена!");
+        else if (result == 'w') dialogResult = MessageBox.Show("Белые победили", "Игра окончена!");
+        else dialogResult = MessageBox.Show("Чёрные победили", "Игра окончена!");
       }
+      else
+      {
+        if (result == 'd') dialogResult = MessageBox.Show("Draw", "Game Finished!");
+        else if (result == 'w') dialogResult = MessageBox.Show("White won", "Game Finished!");
+        else dialogResult = MessageBox.Show("Black won", "Game Finished!");
+      }
+      if(dialogResult == DialogResult.Cancel || 
+        dialogResult == DialogResult.OK) this.Close();
     }
     private void EndGameTester()
     {
@@ -106,7 +116,7 @@ namespace ShessGUI
         for (int j = 0; j < 5; j++)
         {
           Figure? figure = board[i, j];
-          if(figure is not null && figure.color == moveColor)
+          if(figure is not null && figure.color != moveColor)
           {
             if(figure.GetPossibleMoves(board, i, j).Length != 0) return;
           }
@@ -184,7 +194,10 @@ namespace ShessGUI
 
     private void Form1_FormClosing(object sender, FormClosingEventArgs e)
     {
+      streamWriter.WriteLine("quit");
       engine.CloseMainWindow();
+      streamReader.Close();
+      streamWriter.Close();
       engine.Close();
       launcher.Close();
     }
@@ -234,6 +247,7 @@ namespace ShessGUI
               lastMove = Board.Recode(board.isRotated, (int)playerPosI, (int)playerPosJ, i, j);
               board.InstantMove(lastMove);
               Invalidate();
+              chessSound.Play();
               moveNumber++;
               if (figure is null) move50Rule++;
               else move50Rule = 0;
@@ -300,7 +314,7 @@ namespace ShessGUI
         moveColor = 'b';
       }
       else {
-        streamWriter.WriteLine($"search {1000 * whiteDifficult}");
+        streamWriter.WriteLine($"search {1000 * blackDifficult}");
         lastMove = streamReader.ReadLine();
         streamWriter.WriteLine($"apply {lastMove}");
         Console.WriteLine($"apply {lastMove}");
@@ -314,6 +328,7 @@ namespace ShessGUI
         EndGameTester();
         moveColor = 'w';
       }
+      chessSound.Play();
       if (playerColor == moveColor) playerMove = true;
       computerMoving = false;
     }

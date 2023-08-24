@@ -18,6 +18,11 @@ namespace ShessGUI
     List<string> arrangeNames;
     int selectedIndex = 0;
     public bool blocked = false;
+    public int whiteDifficult = 0, blackDifficult = 0;
+    public bool launch = false;
+    public string path;
+    public string language;
+    public string theme;
     public Form2()
     {
       InitializeComponent();
@@ -41,6 +46,22 @@ namespace ShessGUI
           fs.Write(info, 0, info.Length);
         }
       }
+      if(!File.Exists("Settings.txt"))
+      {
+        using (FileStream fs = File.Create("Settings.txt"))
+        {
+          byte[] info = new UTF8Encoding(true).GetBytes("theme:1\n\nlanguage:English");
+          fs.Write(info, 0, info.Length);
+        }
+      }
+      List<string> settings = new List<string>();
+      foreach (string s in File.ReadLines("Settings.txt"))
+      {
+        settings.Add(s);
+      }
+      theme = settings[0];
+      path = settings[1];
+      language = settings[2];
       foreach (string s in File.ReadLines("Arrangements/ArrangeNames.txt"))
       {
         arrangeNames.Add(s);
@@ -48,6 +69,13 @@ namespace ShessGUI
       foreach (string s in File.ReadLines("Arrangements/InitPoses.txt"))
       {
         initPoses.Add(s);
+      }
+      if (language == "language:Русский")
+      {
+        button1.Text = "Настройки";
+        buttonPlay.Text = "Играть";
+        buttonInfo.Text = "Информация";
+        this.Text = "Выберите расстановку";
       }
       UpdateArrangements();
     }
@@ -69,37 +97,29 @@ namespace ShessGUI
     }
     private void buttonAdd_Click(object sender, EventArgs e)
     {
-      if(!blocked)
-      {
-        Form3 addition = new(arrangeNames, initPoses, this);
-        addition.Show();
-        blocked = true;
-      }
+      Form3 addition = new(arrangeNames, initPoses, this);
+      addition.ShowDialog();
     }
 
     private void buttonDelete_Click(object sender, EventArgs e)
     {
-      if(!blocked)
-      {
-        initPoses.RemoveAt(selectedIndex);
-        arrangeNames.RemoveAt(selectedIndex);
-        UpdateArrangements();
-        selectedIndex = 0;
-      }
+      initPoses.RemoveAt(selectedIndex);
+      arrangeNames.RemoveAt(selectedIndex);
+      UpdateArrangements();
+      selectedIndex = 0;
     }
 
     private void buttonInfo_Click(object sender, EventArgs e)
     {
-      if(!blocked)
-      {
-        DialogResult dialogResult;
-        dialogResult = MessageBox.Show(initPoses[selectedIndex], arrangeNames[selectedIndex]);
-      }
+      DialogResult dialogResult;
+      dialogResult = MessageBox.Show(initPoses[selectedIndex], arrangeNames[selectedIndex]);
     }
 
     private void buttonPlay_Click(object sender, EventArgs e)
     {
-      if(!blocked)
+      Form4 dialog = new(this);
+      dialog.ShowDialog();
+      if(launch)
       {
         Form1 game = new(initPoses[selectedIndex], this);
         game.Show();
@@ -110,6 +130,16 @@ namespace ShessGUI
     private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
     {
       selectedIndex = listBox1.SelectedIndex;
+    }
+    private void button1_Click(object sender, EventArgs e)
+    {
+      Form5 frm = new(this);
+      frm.ShowDialog();
+    }
+
+    private void Form2_FormClosing(object sender, FormClosingEventArgs e)
+    {
+      Environment.Exit(0);
     }
   }
 }
