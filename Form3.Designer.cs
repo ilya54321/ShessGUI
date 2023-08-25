@@ -396,8 +396,8 @@
       // 
       // Form3
       // 
-      this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
-      this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+      this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+      this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
       this.ClientSize = new System.Drawing.Size(977, 474);
       this.Controls.Add(this.groupBox1);
       this.Controls.Add(this.label6);
@@ -429,6 +429,7 @@
       this.Controls.Add(this.ArrangeName);
       this.Controls.Add(this.label1);
       this.DoubleBuffered = true;
+      this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
       this.Name = "Form3";
       this.Text = "Addition";
       this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form3_FormClosing);
