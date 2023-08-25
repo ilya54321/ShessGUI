@@ -71,7 +71,6 @@ namespace ShessGUI
         theme = "theme:1";
       }
       else theme = "theme:2";
-      //MessageBox.Show(theme);
     }
 
     private void Form5_FormClosing(object sender, FormClosingEventArgs e)

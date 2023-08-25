@@ -107,7 +107,7 @@ namespace ShessGUI
         _board[k, k1] = value;
       }
     }
-    private Figure? FromFenToFigure(char symb)
+    public Figure? FromFenToFigure(char symb)
     {
       return symb switch
       {
@@ -139,7 +139,7 @@ namespace ShessGUI
         _ => null
       };
     }
-    private void BoardInit(int starti, int startj, int k, string initPos)
+    public void BoardInit(int starti, int startj, int k, string initPos)
     {
       int GetNumber(ref int p, string initPos)
       {
@@ -246,6 +246,34 @@ namespace ShessGUI
         }
       }
       return false;
+    }
+    public string GetFen()
+    {
+      int cnt;
+      string result = "";
+      for(int i = 0; i < 6; i++)
+      {
+        if (i > 0) result += "/";
+        cnt = 0;
+        for(int j = 0; j < 5; j++)
+        {
+          Figure? figure = this[i, j];
+          if(figure is null)
+          {
+            cnt++;
+          }
+          else
+          {
+            if(cnt != 0)result += $"{cnt}";
+            string type = $"{(char)figure.type}";
+            if (figure.color == 'w') type = type.ToUpper();
+            result += type;
+            cnt = 0;
+          }
+        }
+        if (cnt != 0) result += $"{cnt}";
+      }
+      return result;
     }
     public bool KingNearby(int fi, int fj)
     {

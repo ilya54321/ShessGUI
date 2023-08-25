@@ -24,11 +24,13 @@ namespace ShessGUI
     char playerColor='d', computerColor='d';
     string? lastMove = null;
     ChoosingPanel panel;
+    Dictionary<string, int> memory;
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     static extern bool AllocConsole();
     public Form1(string FEN, Form2 launcher)
     {
+      memory = new();
       this.whiteDifficult = launcher.whiteDifficult;
       this.blackDifficult = launcher.blackDifficult;
       chessSound = new();
@@ -108,6 +110,11 @@ namespace ShessGUI
     }
     private void EndGameTester()
     {
+      string fen = board.GetFen();
+      int count;
+      if (memory.TryGetValue(fen, out count) && count < 2) memory[fen]++;
+      else if (!memory.TryGetValue(fen, out count)) memory[fen] = 1;
+      else move50Rule = 50;
       if (move50Rule == 50) {
         EndGame('d'); return;
       }

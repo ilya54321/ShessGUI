@@ -71,6 +71,26 @@ namespace ShessGUI {
         }
         
         /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap choicedouble {
+            get {
+                object obj = ResourceManager.GetObject("choicedouble", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap deleteicon {
+            get {
+                object obj = ResourceManager.GetObject("deleteicon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Поиск локализованного ресурса типа System.IO.UnmanagedMemoryStream, аналогичного System.IO.MemoryStream.
         /// </summary>
         internal static System.IO.UnmanagedMemoryStream FigureSound {
