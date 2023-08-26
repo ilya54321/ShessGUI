@@ -46,8 +46,11 @@ namespace ShessGUI
       streamWriter = engine.StandardInput;
       streamReader = engine.StandardOutput;
       streamReader.ReadLine();
+      Console.WriteLine("ready");
       streamWriter.WriteLine($"position {FEN.Substring(0, FEN.Length)}");
       Console.WriteLine($"position {FEN.Substring(0, FEN.Length)}");
+      streamReader.ReadLine();
+      Console.WriteLine("okpos");
       bool isBoardRotated;
       int p1 = 0;
       while (FEN[p1] != ' ') p1++;
@@ -114,8 +117,8 @@ namespace ShessGUI
       int count;
       if (memory.TryGetValue(fen, out count) && count < 2) memory[fen]++;
       else if (!memory.TryGetValue(fen, out count)) memory[fen] = 1;
-      else move50Rule = 50;
-      if (move50Rule == 50) {
+      else move50Rule = 100;
+      if (move50Rule == 100) {
         EndGame('d'); return;
       }
       for (int i = 0; i < 6; i++)
@@ -190,7 +193,15 @@ namespace ShessGUI
     private void timer1_Tick(object sender, EventArgs e)
     {
       Invalidate();
-      if (!playerMove && !computerMoving) ComputerMove(lastMove);
+      if (!playerMove && !computerMoving)
+      {
+        Thread thr = new(ComputerMoveThread);
+        thr.Start();
+      }
+    }
+    void ComputerMoveThread()
+    {
+      ComputerMove(lastMove);
     }
     private void GetIJ(out int i, out int j)
     {
@@ -264,6 +275,8 @@ namespace ShessGUI
               {
                 streamWriter.WriteLine($"apply {lastMove}");
                 Console.WriteLine($"apply {lastMove}");
+                string s = streamReader.ReadLine();
+                Console.WriteLine(s);
                 EndGameTester();
                 moveColor = moveColor == 'w' ? 'b' : 'w';
                 if (computerColor == moveColor) playerMove = false;
@@ -292,6 +305,8 @@ namespace ShessGUI
               lastMove += (char)possibleFigures[q];
               streamWriter.WriteLine($"apply {lastMove}");
               Console.WriteLine($"apply {lastMove}");
+              string s = streamReader.ReadLine();
+              Console.WriteLine(s);
               EndGameTester();
               moveColor = moveColor == 'w' ? 'b' : 'w';
               if (computerColor == moveColor) playerMove = false;
@@ -307,9 +322,15 @@ namespace ShessGUI
       computerMoving = true;
       if (moveColor == 'w') {
         streamWriter.WriteLine($"search {1000 * whiteDifficult}");
+        Console.WriteLine($"search {1000 * whiteDifficult}");
         lastMove = streamReader.ReadLine();
+        Console.WriteLine(lastMove);
+        lastMove = lastMove.Substring(9, 5);
+        if (lastMove[4] == ' ') lastMove = lastMove.Substring(0, 4);
         streamWriter.WriteLine($"apply {lastMove}");
         Console.WriteLine($"apply {lastMove}");
+        string s = streamReader.ReadLine();
+        Console.WriteLine(s);
         Board.Decode(lastMove, board.isRotated, out int fi, out int fj, out int ni, out int nj);
         Figure? figure = board[ni, nj];
         board.InstantMove(lastMove);
@@ -322,9 +343,15 @@ namespace ShessGUI
       }
       else {
         streamWriter.WriteLine($"search {1000 * blackDifficult}");
+        Console.WriteLine($"search {1000 * blackDifficult}");
         lastMove = streamReader.ReadLine();
+        Console.WriteLine(lastMove);
+        lastMove = lastMove.Substring(9, 5);
+        if (lastMove[4] == ' ') lastMove = lastMove.Substring(0, 4);
         streamWriter.WriteLine($"apply {lastMove}");
         Console.WriteLine($"apply {lastMove}");
+        string s = streamReader.ReadLine();
+        Console.WriteLine(s);
         Board.Decode(lastMove, board.isRotated, out int fi, out int fj, out int ni, out int nj);
         Figure? figure = board[ni, nj];
         board.InstantMove(lastMove);

@@ -75,7 +75,7 @@ namespace ShessGUI
     private string GetInitPos()
     {
       string initPos = "";
-      initPos = FEN + " " + firstMove + " " + transpos + " " + moveNumber + " " + move50Rule;
+      initPos = FEN + " " + firstMove + " " + transpos + " " + move50Rule + " " + moveNumber;
       return initPos;
     }
     private void GetIJ(out int i, out int j)

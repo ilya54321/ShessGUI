@@ -183,8 +183,8 @@ namespace ShessGUI
         possibleFigures.Add((Figures)initPos[p]);
         p++;
       } p++;
-      moveNumber = GetNumber(ref p, initPos);
       move50Rule = GetNumber(ref p, initPos);
+      moveNumber = GetNumber(ref p, initPos);
     }
     public void GetWhiteKingIJ(out int ki, out int kj)
     {
