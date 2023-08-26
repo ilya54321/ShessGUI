@@ -108,8 +108,20 @@ namespace ShessGUI
         else if (result == 'w') dialogResult = MessageBox.Show("White won", "Game Finished!");
         else dialogResult = MessageBox.Show("Black won", "Game Finished!");
       }
-      if(dialogResult == DialogResult.Cancel || 
-        dialogResult == DialogResult.OK) this.Close();
+      if (dialogResult == DialogResult.Cancel ||
+        dialogResult == DialogResult.OK)
+      {
+        SafeClose();
+      }
+    }
+    public void SafeClose()
+    {
+      if (this.InvokeRequired)
+      {
+        Action safeClose = delegate { SafeClose(); };
+        this.Invoke(safeClose);
+      }
+      else this.Close();
     }
     private void EndGameTester()
     {
@@ -217,7 +229,7 @@ namespace ShessGUI
       streamReader.Close();
       streamWriter.Close();
       engine.Close();
-      launcher.Close();
+      launcher.Show();
     }
 
     private void PawnChecker()
@@ -263,11 +275,12 @@ namespace ShessGUI
             if (now[0] == i && now[1] == j)
             {
               lastMove = Board.Recode(board.isRotated, (int)playerPosI, (int)playerPosJ, i, j);
+              Figure figure2 = board[(int)playerPosI, (int)playerPosJ];
               board.InstantMove(lastMove);
               Invalidate();
               chessSound.Play();
               moveNumber++;
-              if (figure is null) move50Rule++;
+              if (figure is null && figure2.type != Board.Figures.Pawn) move50Rule++;
               else move50Rule = 0;
               possiblePositions.Clear();
               PawnChecker();
@@ -333,8 +346,9 @@ namespace ShessGUI
         Console.WriteLine(s);
         Board.Decode(lastMove, board.isRotated, out int fi, out int fj, out int ni, out int nj);
         Figure? figure = board[ni, nj];
+        Figure? figure2 = board[fi, fj];
         board.InstantMove(lastMove);
-        if (figure is null) move50Rule++;
+        if ((figure2 is not null && figure2.type != Board.Figures.Pawn) && figure is null) move50Rule++;
         else move50Rule = 0;
         moveNumber++;
         if (lastMove.Length == 5) board[ni, nj] = GetFigureFromEnumerator((Figures)lastMove[4], 'w');
@@ -354,8 +368,9 @@ namespace ShessGUI
         Console.WriteLine(s);
         Board.Decode(lastMove, board.isRotated, out int fi, out int fj, out int ni, out int nj);
         Figure? figure = board[ni, nj];
+        Figure? figure2 = board[fi, fj];
         board.InstantMove(lastMove);
-        if (figure is null) move50Rule++;
+        if ((figure2 is not null && figure2.type != Board.Figures.Pawn) && figure is null) move50Rule++;
         else move50Rule = 0;
         moveNumber++;
         if (lastMove.Length == 5) board[ni, nj] = GetFigureFromEnumerator((Figures)lastMove[4], 'b');

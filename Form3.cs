@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Net.NetworkInformation;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -78,6 +80,44 @@ namespace ShessGUI
       initPos = FEN + " " + firstMove + " " + transpos + " " + move50Rule + " " + moveNumber;
       return initPos;
     }
+    private bool KingsIsOk()
+    {
+      int wk = 0, bk = 0;
+      for(int i = 0; i < 6; i++)
+      {
+        for(int j = 0; j < 5; j++)
+        {
+          if (addBoard[i, j] is not null && addBoard[i, j].type == Board.Figures.King)
+          {
+            if (addBoard[i, j].color == 'w') wk++;
+            else bk++;
+          }
+        }
+      }
+      if (wk == 1 && bk == 1) return true;
+      else return false;
+    }
+    private bool PawnIsOk()
+    {
+      bool good = true;
+      for(int i = 0; i < 5; i++)
+      {
+        Figure? figure1, figure2;
+        figure1 = addBoard[0, i];
+        figure2 = addBoard[5, i];
+        if (figure1 is not null && figure1.type == Board.Figures.Pawn && figure1.color == 'w') 
+        {
+          good = false;
+          break;
+        }
+        if (figure2 is not null && figure2.type == Board.Figures.Pawn && figure2.color == 'b')
+        {
+          good = false;
+          break;
+        }
+      }
+      return good;
+    }
     private void GetIJ(out int i, out int j)
     {
       Point CursorPos = pictureBox1.PointToClient(Cursor.Position);
@@ -100,11 +140,43 @@ namespace ShessGUI
     }
     private void button1_Click(object sender, EventArgs e)
     {
-      arrangeNames.Add(name);
-      initPoses.Add(GetInitPos());
-      f.UpdateArrangements();
-      f.blocked = false;
-      this.Close();
+      if(KingsIsOk())
+      {
+        if(PawnIsOk())
+        {
+          arrangeNames.Add(name);
+          initPoses.Add(GetInitPos());
+          f.UpdateArrangements();
+          f.blocked = false;
+          this.Close();
+        }
+        else
+        {
+          if (f.language == "language:Русский")
+          {
+            MessageBox.Show("Пешки не могут стоять на крайних горизонталях!", "Ошибка",
+              MessageBoxButtons.OK, MessageBoxIcon.Error);
+          }
+          else
+          {
+            MessageBox.Show("Pawns cannot stand on the extreme horizontals!", "Error",
+              MessageBoxButtons.OK, MessageBoxIcon.Error);
+          }
+        }
+      }
+      else
+      {
+        if(f.language == "language:Русский")
+        {
+          MessageBox.Show("На шахматной доске должен быть 1 белый и 1 чёрный король!", "Ошибка",
+            MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        else
+        {
+          MessageBox.Show("There must be 1 white and 1 black king on the chessboard!", "Error", 
+            MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+      }
     }
 
     private void ArrangeName_TextChanged(object sender, EventArgs e)
