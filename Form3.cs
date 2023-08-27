@@ -97,6 +97,13 @@ namespace ShessGUI
       if (wk == 1 && bk == 1) return true;
       else return false;
     }
+    private bool ShahIsOk()
+    {
+      addBoard.GetBlackKingIJ(out int bi, out int bj);
+      addBoard.GetWhiteKingIJ(out int wi, out int wj);
+      if (!addBoard.IsShahToThisKing(bi, bj) && !addBoard.IsShahToThisKing(wi, wj)) return true;
+      else return false;
+    }
     private bool PawnIsOk()
     {
       bool good = true;
@@ -144,11 +151,27 @@ namespace ShessGUI
       {
         if(PawnIsOk())
         {
-          arrangeNames.Add(name);
-          initPoses.Add(GetInitPos());
-          f.UpdateArrangements();
-          f.blocked = false;
-          this.Close();
+          if(ShahIsOk())
+          {
+            arrangeNames.Add(name);
+            initPoses.Add(GetInitPos());
+            f.UpdateArrangements();
+            f.blocked = false;
+            this.Close();
+          }
+          else
+          {
+            if (f.language == "language:Русский")
+            {
+              MessageBox.Show("Королю не может быть объявлен шах в начале партии!", "Ошибка",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
+              MessageBox.Show("No attack to king in the start!", "Error",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+          }
         }
         else
         {

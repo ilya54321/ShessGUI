@@ -18,6 +18,8 @@ namespace ShessGUI
     List<Figures> possibleFigures;
     int? playerPosI, playerPosJ;
     int moveNumber, move50Rule;
+    int cci=0, ccj=0;
+    bool computerChoice = false;
     public char moveColor;
     bool playerMove, transformation, computerMoving = false;
     public int whiteDifficult=0, blackDifficult=0;
@@ -164,8 +166,19 @@ namespace ShessGUI
         for(int j = 0; j < 5; j++)
         {
           Figure? figure = board[i, j];
-          if (figure is not null)g.DrawImage(figure.ObjImg, board.firstPosX + board.figureSize.Width * j,
+          if (figure is not null && figure.type != Board.Figures.King)g.DrawImage(figure.ObjImg, board.firstPosX + board.figureSize.Width * j,
             board.firstPosY + board.figureSize.Height * i);
+          else if(figure is not null && figure.type == Board.Figures.King)
+          {
+            if(board.IsShahToThisKing(i, j))
+            {
+              g.DrawImage(new Bitmap(Other.ShahToKing, new Size(120, 120)), 
+                board.firstPosX + board.figureSize.Width * j,
+                board.firstPosY + board.figureSize.Height * i);
+            }
+            g.DrawImage(figure.ObjImg, board.firstPosX + board.figureSize.Width * j,
+              board.firstPosY + board.figureSize.Height * i);
+          }
           
         }
       }
@@ -177,7 +190,7 @@ namespace ShessGUI
             board.firstPosY + board.figureSize.Height * pos[0]);
         }
       }
-      if(playerPosI is not null && playerPosJ is not null)
+      if(playerPosI is not null && playerPosJ is not null && computerChoice == false)
       {
         g.DrawImage(new Bitmap(Sprites.choice, board.figureSize), board.firstPosX + board.figureSize.Width * (int)playerPosJ,
             board.firstPosY + board.figureSize.Height * (int)playerPosI);
@@ -199,6 +212,12 @@ namespace ShessGUI
             g.DrawImage(new Bitmap(Sprites.PlayerChoice, new Size(120, 120)), panel.FiguresCoordinates[i].X,
               panel.FiguresCoordinates[i].Y);
         }
+      }
+      if(computerChoice)
+      {
+        g.DrawImage(new Bitmap(Sprites.choice, new Size(120, 120)),
+          board.firstPosX + board.figureSize.Width * ccj,
+          board.firstPosY + board.figureSize.Height * cci);
       }
     }
 
@@ -255,6 +274,7 @@ namespace ShessGUI
         Figure? figure = Board.InRange(i, j) ? board[i, j] : null;
         if (figure is not null && figure.color == moveColor)
         {
+          computerChoice = false;
           playerPosI = i; playerPosJ = j;
           possiblePositions = new List<int[]>(0);
           string[]? possibleMoves = figure.GetPossibleMoves(board, i, j);
@@ -347,6 +367,7 @@ namespace ShessGUI
         Board.Decode(lastMove, board.isRotated, out int fi, out int fj, out int ni, out int nj);
         Figure? figure = board[ni, nj];
         Figure? figure2 = board[fi, fj];
+        cci = fi; ccj = fj;
         board.InstantMove(lastMove);
         if ((figure2 is not null && figure2.type != Board.Figures.Pawn) && figure is null) move50Rule++;
         else move50Rule = 0;
@@ -369,6 +390,7 @@ namespace ShessGUI
         Board.Decode(lastMove, board.isRotated, out int fi, out int fj, out int ni, out int nj);
         Figure? figure = board[ni, nj];
         Figure? figure2 = board[fi, fj];
+        cci = fi; ccj = fj;
         board.InstantMove(lastMove);
         if ((figure2 is not null && figure2.type != Board.Figures.Pawn) && figure is null) move50Rule++;
         else move50Rule = 0;
@@ -380,6 +402,7 @@ namespace ShessGUI
       chessSound.Play();
       if (playerColor == moveColor) playerMove = true;
       computerMoving = false;
+      computerChoice = true;
     }
     private void Form1_MouseDown(object sender, MouseEventArgs e)
     {
