@@ -27,9 +27,6 @@ namespace ShessGUI
     string? lastMove = null;
     ChoosingPanel panel;
     Dictionary<string, int> memory;
-    [DllImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    static extern bool AllocConsole();
     public Form1(string FEN, Form2 launcher)
     {
       memory = new();
@@ -44,7 +41,6 @@ namespace ShessGUI
       engine.StartInfo.RedirectStandardInput = true;
       engine.StartInfo.CreateNoWindow = true;
       engine.Start();
-      if(whiteDifficult!=0||blackDifficult!=0)AllocConsole();
       streamWriter = engine.StandardInput;
       streamReader = engine.StandardOutput;
       streamReader.ReadLine();
@@ -257,13 +253,15 @@ namespace ShessGUI
       {
         Figure? figure = board[0, i];
         if (figure is not null && figure.type == Figures.Pawn)
-          transformation = true;
+          if((board.isRotated && figure.color == 'b') || (figure.color == 'w' && !board.isRotated))
+            transformation = true;
       }
       for (int i = 0; i < 5; i++)
       {
         Figure? figure = board[5, i];
         if (figure is not null && figure.type == Figures.Pawn)
-          transformation = true;
+          if ((board.isRotated && figure.color == 'w') || (figure.color == 'b' && !board.isRotated))
+            transformation = true;
       }
     }
     private void PlayerMove(string? move)
